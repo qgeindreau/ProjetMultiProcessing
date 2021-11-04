@@ -1,0 +1,42 @@
+Première idée:
+    faire un dictionnaire en associant chaque mot a un ensemble du style {'abracAdabra':{'5a','2b',2r','1c','1d'}}
+    retourner le dictionnaire : ex: {{'1n','1i','1c','1h','e'}:['chien','niche']}
+    sortir les valeurs du dictionnaire
+deuxieme idée:
+    comme la première mais en associant non pas un ensemble mais un entier
+    Pour cela, on utilise que deux nombre premier sont premier entre eux, ainsi on encode 'a' par '2', 'b' par 3, etc..
+    puis on associe à un mot le produit de l'encodage de ses lettre. Gain de temps très significatif !
+troisième idée:
+    appliquer des map(), encore un gain de temps significatif
+quatrième idée:
+    On part sur le multiprocessing, on définie des sous listes de mots par rapport au nombre de lettre : mauvais résultat, le splittage de la liste de départ en sous liste prend beaucoup de temps
+    Pareil, mettre les mots sous une Queue et les resortir prends pas mal de temps, au final on perd par rapport à un programme sans multiprocessing (trop de temps dédié à la communication..)
+    Dans ce cas, je choisit d'utiliser non pas multiprocessing.Process mais d'utiliser multiprocessing.Pool puis de faire Pool(nb_cpu).map() plutot que map:
+    Gain de temps au final.
+cinquième idée:
+    J'ai lu quelquechose à propos d'un framework nommée ray, je décide d'expèrimenter. Je commence, résultat: mauvais
+    Mon programme de base est trop rapide pour avoir un intèret à trop subdiviser le travail il me semble, je vais essayer de gagner du temps différement
+sixième idée:
+    plutot que d encoder les mot à l'aide de 'abcde..' [2,3,5,7,11,..] je me dis que la fonction eval pourrait être utile : Erreur: eval est au contraire bien plus lent
+    En revanche, en utilisant un dictionnaire plutôt que 1 str et 1 liste, le temps est fortement accelèrer,
+    on créer le dico avec dico=dict(zip('abc..',[2,3,5,..]))|dict(zip('ABC..',[2,3,5,..]))   PASSAGE SOUS la seconde
+septieme idée:
+    découverte de str.maketrans et str.translate, on va essayer pour l'encodage
+    dic=dict(zip("azertyuiopqsdfghjklmwxcvbn0123456789-.'&,/!",[str(i)+'*' for i in[
+        2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
+        71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139,
+        149, 151, 157, 163, 167, 173, 179, 181, 191]
+    ]))|dict(zip('AZERTYUIOPQSDFGHJKLMWXCVBN',[str(i)+'*' for i in [
+        2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
+        71, 73, 79, 83, 89, 97, 101]]))
+encodeur=str.maketrans(dic)
+
+
+def primatize(word):
+    try:
+        return eval(word.translate(encodeur)[:-1])
+    except:
+        return 1
+
+print(primatize('aA'*500))
+    resultat: On repasse au dessus de la seconde malgrés les variantes
